@@ -61,4 +61,3 @@ if __name__ == "__main__":
                     'https://www.behance.net/gallery/166882821/NFT-Landing-Page-Design?tracking_source=search_projects%7Clanding+page', 'https://www.behance.net/gallery/158203647/Azuki_Website-Redesign-Landing-Page?tracking_source=search_projects%7Clanding+page']
     design_urls = parser.design_url(project_urls)
     parser.get_image(design_urls)
-    print(design_urls)
