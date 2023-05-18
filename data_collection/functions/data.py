@@ -11,7 +11,7 @@ from binance.client import Client
 from datetime import timedelta, datetime
 from dateutil import parser
 from tqdm import tqdm_notebook
-from data_collection.constants import TIMEFRAME
+from constants import TIMEFRAME
 
 from data_collection.authkeys import BINANCE_API_KEY, BINANCE_API_SECRET
 

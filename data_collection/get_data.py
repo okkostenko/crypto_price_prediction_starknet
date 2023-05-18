@@ -1,6 +1,6 @@
 from functions.data import get_data, visualize_data
 from functions.statistics_calculation import calc_statistics
-from data_collection.constants import BTC_TOKEN, ETH_TOKEN, TIMEFRAME, PERIODS
+from constants import BTC_TOKEN, ETH_TOKEN, TIMEFRAME, PERIODS
 
 # We are making a prediction for a time point in a week 
 # So we have to include at least the last 2 weeks data, etc. last 14 rows of data, if the timeframe is set to 1d

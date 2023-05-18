@@ -2,7 +2,7 @@ from typing import Union
 import math
 import numpy as np
 import pandas as pd
-from data_collection.constants import PERIODS, TIMEFRAME, TRAINING_SPLIT, VALIDATION_SPLIT, TEST_SPLIT
+from constants import PERIODS, TIMEFRAME, TRAINING_SPLIT, VALIDATION_SPLIT, TEST_SPLIT
 
 def get_split(split_name:str) -> float:
     match split_name:
