@@ -11,18 +11,23 @@ def calc_volatility(df:DataFrame, periods:int = 20) -> DataFrame:
     log_returns = np.log(df["close"]/df["close"].shift())
     volatility = log_returns.rolling(periods).std()*periods**.5
 
-    df["Volatility"] = volatility
+    df["volatility"] = volatility
 
     return df
 
+# Growth
+def calc_growth(df:DataFrame) -> DataFrame:
+    growth = df["close"] - df["open"]
+    df["growth"] = growth
 
 # Moving Averege
 def calc_ma(df:DataFrame)->DataFrame:
     
-    """Calculate moving averages for the last 50 and 200 datapoints."""
+    """Calculate moving averages for the last 7, 25 and 99 datapoints."""
 
-    df["ma50"] = df["close"].rolling(50).mean()
-    df["ma200"] = df["close"].rolling(200).mean()
+    df["ma7"] = df["close"].rolling(7).mean()
+    df["ma25"] = df["close"].rolling(25).mean()
+    df["ma99"] = df["close"].rolling(99).mean()
 
     return df
 
@@ -57,9 +62,9 @@ def calc_bollinger_bends(df:DataFrame, periods:int = 20) -> DataFrame:
 
     df["std"] = df["close"].rolling(periods).std()
 
-    df["mb"] = df["close"].rolling(periods).mean()
-    df["ub"] = df["mb"] + 2 * df["std"]
-    df["lb"] = df["mb"] - 2 * df["std"]
+    df["bb-mb"] = df["close"].rolling(periods).mean()
+    df["bb-ub"] = df["bb-mb"] + 2 * df["std"]
+    df["bb-lb"] = df["bb-mb"] - 2 * df["std"]
 
     return df
 
@@ -109,6 +114,7 @@ def calc_statistics(df:DataFrame, periods:int=20, slow:float = 24, fast:float = 
     """Calculate all necessery statistics."""
 
     df = calc_volatility(df, periods)
+    df = calc_growth(df)
     df = calc_ma(df)
     df = calc_rsi(df, periods)
     df = calc_bollinger_bends(df, periods)
@@ -117,3 +123,6 @@ def calc_statistics(df:DataFrame, periods:int=20, slow:float = 24, fast:float = 
     df = calc_obv(df)
     
     return df
+
+def calculate_statistics_by_day(df: pd.DataFrame):
+    ...

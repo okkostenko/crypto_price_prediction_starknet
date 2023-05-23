@@ -13,7 +13,7 @@ from dateutil import parser
 from tqdm import tqdm_notebook
 from constants import TIMEFRAME
 
-from data_collection.authkeys import BINANCE_API_KEY, BINANCE_API_SECRET
+from authkeys import BINANCE_API_KEY, BINANCE_API_SECRET
 
 binance_api_key = BINANCE_API_KEY
 binance_api_secret = BINANCE_API_SECRET
@@ -34,12 +34,13 @@ def minutes_of_new_data(symbol:str, timeframe:str, data:pd.DataFrame, source:str
         old = parser.parse(data["timestamp"].iloc[-1])
     elif source == "binance": 
         old = datetime.strptime('1 Jan 2017', '%d %b %Y')
+
     if source == "binance": 
         new = pd.to_datetime(binance_client.get_klines(symbol=symbol, interval=timeframe)[-1][0], unit='ms')
 
     return old, new
 
-def get_historical_data(symbol:str, filepath:str, timeframe:str|None = Client.KLINE_INTERVAL_12HOUR) -> pd.DataFrame:
+def get_historical_data(symbol:str, filepath:str, timeframe:str|None = Client.KLINE_INTERVAL_12HOUR) -> Union[pd.DataFrame, datetime, datetime]:
 
     """Get historical data."""
 
@@ -66,7 +67,7 @@ def get_historical_data(symbol:str, filepath:str, timeframe:str|None = Client.KL
     klines = binance_client.get_historical_klines(symbol, timeframe, oldest_point.strftime("%d %b %Y %H:%M:%S"), newest_point.strftime("%d %b %Y %H:%M:%S"))
 
     # Create a dataframe 
-    data = pd.DataFrame(klines, columns = ['timestamp', 'open', 'high', 'low', 'close', 'volume', 'close_time', 'quote_av', 'trades', 'tb_base_av', 'tb_quote_av', 'ignore' ])
+    data = pd.DataFrame(klines, columns = ['timestamp', 'open', 'high', 'low', 'close', 'volume'])
 
     data['timestamp'] = pd.to_datetime(data['timestamp'], unit='ms')
 
@@ -79,13 +80,13 @@ def get_historical_data(symbol:str, filepath:str, timeframe:str|None = Client.KL
     print(df)
     print('Historical price data is downloaded!')
 
-    return df
+    return df, oldest_point, newest_point
 
-def get_market_cap(ticker:str) -> pd.DataFrame:
+def get_market_cap(ticker:str, start_date:str|None=None, end_date:str|None=None) -> pd.DataFrame:
 
     """Get daily historical market capitalization data by ticker."""
 
-    scraper = CmcScraper(ticker)
+    scraper = CmcScraper(ticker, start_date=start_date, end_date=end_date)
     market_cap = scraper.get_dataframe()
     market_cap = market_cap[["Date", "Market Cap"]].rename(columns={"Date":"date", "Market Cap":"market_cap"})
 
@@ -111,7 +112,7 @@ def merge_history_data_and_market_cap(symbol:str, df:pd.DataFrame) -> pd.DataFra
 
     return df
 
-def get_data(symbol:str, timeframe:str|None = TIMEFRAME, save:bool|None = False) -> pd.DataFrame:
+def get_data_full(symbol:str, timeframe:str|None = TIMEFRAME, save:bool|None = False) -> pd.DataFrame:
 
     """Get historical price, volume and market capitalization data by ticker."""
 
@@ -172,3 +173,9 @@ def convert_dtypes(df:pd.DataFrame) -> pd.DataFrame:
     df[object_columns] = df[object_columns].astype("float")
 
     return df
+
+def get_data_by_day():
+    ...
+
+def update_data():
+    ...

@@ -1,5 +1,6 @@
-from functions.data import get_data, visualize_data
-from functions.statistics_calculation import calc_statistics
+import pandas as pd
+from functions.data import get_data_full, visualize_data, update_data
+from functions.statistics_calculation import calc_statistics, calculate_statistics_by_day
 from constants import BTC_TOKEN, ETH_TOKEN, TIMEFRAME, PERIODS
 
 # We are making a prediction for a time point in a week 
@@ -12,22 +13,24 @@ def get_full_data(token:str, timeframe:str, periods:int) -> None:
 
     """Gets historical data, calculates all nessecery statistics and saves all this information as .csv file."""
 
-    df = get_data(token, timeframe, save=True)
+    df = get_data_full(token, timeframe, save=True)
+    df = calc_statistics(df=df, periods=periods)
 
-    print(f"\n\nBitcoin historical price, volume and market cap data:\n")
-    print(df)
+    df["label"] = df["growth"].shift(-1)
 
-    print("\n\nBitcoin dataframe info:\n")
-    print(df.info())
-
-    print(f"\n\nBitcoin descriptive statistics:\n")
-    print(df.describe())
-
-    df = calc_statistics(token, periods=periods)
+    # df.dropna(subset=["label"], inplace=True)
+    # df.fillna(0, inplace=True)
+    df.dropna(inplace=True)
+    
     df.to_csv(f"/{token.lower()}/data/datasets/data_with_statistics_{token}_{timeframe}_full.csv")
     print("\n\nBitcoin historical data with calculated statistics:\n")
     print(df)
     visualize_data(df)
+
+# def update_historical_data(token:str, filename:str) -> None:
+#     df = pd.read_csv(filename)
+#     df = update_data(token, df)
+#     df = calculate_statistics_by_day(df)
 
 if __name__=="__main__":
 
