@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 from constants import *
 
-OTPUT_DIR = "/data_collection/datasets"
+OTPUT_DIR = "./data_collection/datasets"
 
 # def get_split(split_name:str) -> float:
 #     match split_name:
@@ -19,7 +19,8 @@ OTPUT_DIR = "/data_collection/datasets"
 #             raise ValueError(f"There is no such split as {split_name}. Please input one of following: 'train', 'validation' or 'test'.")
 
 def split_dataset(features:np.ndarray, labels:np.ndarray) -> None:
-    train_len = len(features)*TRAINING_SPLIT
+    train_len = int(len(features)*TRAINING_SPLIT)
+    print(train_len)
 
     training_features = features[:train_len]
     training_labels = labels[:train_len]
@@ -33,16 +34,17 @@ def split_dataset(features:np.ndarray, labels:np.ndarray) -> None:
     save_dataset(test_labels, "labels", "test")
 
 def save_dataset(data:np.ndarray, type:str, split:str|None="full") -> None:
-    os.makedirs(filepath:=os.path.join(OTPUT_DIR, split, type+".npy"))
-    with open(filepath, "wb") as f:
-        np.save(filepath, data)
+    if not os.path.exists(OTPUT_DIR+"/"+split+"/"+type+".npy"):
+        os.makedirs(filepath:=os.path.join(OTPUT_DIR, split), exist_ok=True)
+        with open(OTPUT_DIR+"/"+split+"/"+type+".npy", "wb") as f:
+            np.save(f, data)
 
 
 def create_dataset(symbol:str, periods:int|None=PERIODS, task:str|None="reg") -> Union[np.ndarray[np.ndarray], np.ndarray]:
 
     """Splits dataset into training, validation and testing ones."""
 
-    df = pd.read_csv(f"/{symbol.lower()}/data/datasets/data_with_statistics_{symbol}_{TIMEFRAME}_full.csv")
+    df = pd.read_csv(f'./data_collection/datasets/full/data_with_statistics_{symbol}_{TIMEFRAME}_full.csv')
     df_y = df["label"]
     df_x = df.iloc[:, :-1]
 
@@ -68,22 +70,33 @@ def create_dataset(symbol:str, periods:int|None=PERIODS, task:str|None="reg") ->
     split_dataset(features, labels)
     
 
+
 def labels_classification(labels:np.ndarray) -> np.ndarray:
-    labels_df = pd.DataFrame(labels, columns=["label"])
-    std_df = labels_df.rolling(PERIODS).std()
-    mean = labels_df.rolling(PERIODS).mean()
-    std = std_df.to_numpy()
-    
+
+    """Classifies labales for a dataset by standard deviation using percentile."""
+    labels_min = np.min(labels)
+    labels_max = np.max(labels)
+    labels_diff = labels_max - labels_min
     for i, label in enumerate(labels):
-        if std[i] > ...:
-            if label > mean:
-                labels[i] = BUY_MAX
-            else:
-                labels[i] = SELL_MAX
-        elif std[i] > ...:
-            if label > mean:
-                labels[i] = BUY
-            else:
-                labels[i] = SELL
-        else:
+        # if label > np.percentile(labels, 84.4):
+        if label > labels_diff*0.844+labels_min:
+            print(np.percentile(labels, 84.4))
+            labels[i] = BUY_MAX
+        # elif label > np.percentile(labels, 66.7):
+        elif label > labels_diff*0.667+labels_min:
+            labels[i] = BUY
+        # elif label > np.percentile(labels, 33.7):
+        elif label > labels_diff*0.337+ labels_min:
             labels[i] = HOLD
+        # elif label > np.percentile(labels, 16.7):
+        elif label > labels_diff*0.167+labels_min:
+            labels[i] = SELL
+        else:
+            labels[i] = SELL_MAX
+    
+    return labels
+
+if __name__ == "__main__":
+    create_dataset(BTC_TOKEN)
+    create_dataset(BTC_TOKEN, task="class")
+    print("Datasets are created.")

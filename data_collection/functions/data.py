@@ -67,9 +67,12 @@ def get_historical_data(symbol:str, filepath:str, timeframe:str|None = Client.KL
     klines = binance_client.get_historical_klines(symbol, timeframe, oldest_point.strftime("%d %b %Y %H:%M:%S"), newest_point.strftime("%d %b %Y %H:%M:%S"))
 
     # Create a dataframe 
-    data = pd.DataFrame(klines, columns = ['timestamp', 'open', 'high', 'low', 'close', 'volume'])
+    data = pd.DataFrame(klines, columns = ['timestamp', 'open', 'high', 'low', 'close', 'volume', 'close_time', 'quote_av', 'trades', 'tb_base_av', 'tb_quote_av', 'ignore'])
+
+    data = data[['timestamp', 'open', 'high', 'low', 'close', 'volume']]
 
     data['timestamp'] = pd.to_datetime(data['timestamp'], unit='ms')
+    print(data['timestamp'])
 
     if len(df) > 0:
         temp_df = pd.DataFrame(data)
@@ -77,7 +80,6 @@ def get_historical_data(symbol:str, filepath:str, timeframe:str|None = Client.KL
     else: 
         df = data
 
-    print(df)
     print('Historical price data is downloaded!')
 
     return df, oldest_point, newest_point
@@ -116,10 +118,11 @@ def get_data_full(symbol:str, timeframe:str|None = TIMEFRAME, save:bool|None = F
 
     """Get historical price, volume and market capitalization data by ticker."""
 
-    filepath = f'/{symbol.lower()}/data/datasets/historical_{symbol}_{timeframe}_full.csv'
+    filepath = f'./data_collection/datasets/full/historical_{symbol}_{timeframe}_full.csv'
+    os.makedirs("./data_collection/datasets/full", exist_ok=True)
     
     # Get historical data
-    df = get_historical_data(symbol=symbol, filepath=filepath, timeframe=timeframe)
+    df, _, _ = get_historical_data(symbol=symbol, filepath=filepath, timeframe=timeframe)
 
     # Merge historical data and market capitalization
     df = merge_history_data_and_market_cap(symbol=symbol, df=df)

@@ -19,11 +19,15 @@ def calc_volatility(df:DataFrame, periods:int = 20) -> DataFrame:
 def calc_growth(df:DataFrame) -> DataFrame:
     growth = df["close"] - df["open"]
     df["growth"] = growth
+    
+    return df
 
 # Moving Averege
 def calc_ma(df:DataFrame)->DataFrame:
     
     """Calculate moving averages for the last 7, 25 and 99 datapoints."""
+    print(df.info())
+    print(df["close"])
 
     df["ma7"] = df["close"].rolling(7).mean()
     df["ma25"] = df["close"].rolling(25).mean()
@@ -115,6 +119,7 @@ def calc_statistics(df:DataFrame, periods:int=20, slow:float = 24, fast:float = 
 
     df = calc_volatility(df, periods)
     df = calc_growth(df)
+    print(df)
     df = calc_ma(df)
     df = calc_rsi(df, periods)
     df = calc_bollinger_bends(df, periods)

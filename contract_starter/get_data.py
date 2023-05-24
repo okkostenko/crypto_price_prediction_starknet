@@ -6,8 +6,8 @@ from datetime import timedelta, datetime
 from typing import Union
 from data_collection.functions.data import convert_dtypes, get_market_cap, get_data_full
 
-from constants import TIMEFRAME
-from authkeys import BINANCE_API_KEY, BINANCE_API_SECRET
+from data_collection.constants import TIMEFRAME
+from data_collection.authkeys import BINANCE_API_KEY, BINANCE_API_SECRET
 
 binance_api_key = BINANCE_API_KEY
 binance_api_secret = BINANCE_API_SECRET

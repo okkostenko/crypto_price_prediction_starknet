@@ -1,3 +1,4 @@
+import os
 import pandas as pd
 from functions.data import get_data_full, visualize_data, update_data
 from functions.statistics_calculation import calc_statistics, calculate_statistics_by_day
@@ -22,22 +23,37 @@ def get_full_data(token:str, timeframe:str, periods:int) -> None:
     # df.fillna(0, inplace=True)
     df.dropna(inplace=True)
     
-    df.to_csv(f"/{token.lower()}/data/datasets/data_with_statistics_{token}_{timeframe}_full.csv")
+    df.to_csv(f'./data_collection/datasets/full/data_with_statistics_{token}_{TIMEFRAME}_full.csv')
+    print("\n\nBitcoin historical data with calculated statistics:\n")
+    visualize_data(df)
+
+def statistics_growth(filename:str, token:str) -> None:
+    df = pd.read_csv(filename)
+    
+    df = calc_statistics(df=df, periods=PERIODS)
+
+    df["label"] = df["growth"].shift(-1)
+
+    # df.dropna(subset=["label"], inplace=True)
+    # df.fillna(0, inplace=True)
+    df.dropna(inplace=True)
+
+    new_filepath = f'./data_collection/datasets/full/data_with_statistics_{token+"USDT"}_{TIMEFRAME}_full.csv'
+    os.makedirs("./data_collection/datasets/full", exist_ok=True)
+    
+    df.to_csv(new_filepath)
     print("\n\nBitcoin historical data with calculated statistics:\n")
     print(df)
     visualize_data(df)
 
-# def update_historical_data(token:str, filename:str) -> None:
-#     df = pd.read_csv(filename)
-#     df = update_data(token, df)
-#     df = calculate_statistics_by_day(df)
-
 if __name__=="__main__":
 
-    print("Collecting data for Bitcoin-Tether...")
-    get_full_data(token=BTC_TOKEN, timeframe=TIMEFRAME, periods=PERIODS)
-    print("Data for Bitcoin-Tether is collected\n\n")
+    # print("Collecting data for Bitcoin-Tether...")
+    # get_full_data(token=BTC_TOKEN, timeframe=TIMEFRAME, periods=PERIODS)
+    # print("Data for Bitcoin-Tether is collected\n\n")
 
-    print("Collecting data for Ethirium-Tether...")
-    get_full_data(token=ETH_TOKEN, timeframe=TIMEFRAME, periods=PERIODS)
-    print("Data for Ethirium-Tether is collected\n\n")
+    # print("Collecting data for Ethirium-Tether...")
+    # get_full_data(token=ETH_TOKEN, timeframe=TIMEFRAME, periods=PERIODS)
+    # print("Data for Ethirium-Tether is collected\n\n")
+    statistics_growth(filename='./data_collection/datasets/full/historical_BTCUSDT_1d_full.csv', token="BTC")
+    print("Statistics for Bitcoin-Tether is collected\n\n")
