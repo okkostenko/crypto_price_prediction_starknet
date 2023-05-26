@@ -64,10 +64,8 @@ def create_dataset(symbol:str, periods:int|None=PERIODS, task:str|None="reg") ->
         features.append(features_data)
         labels.append(labels_data)
     print("Features and labels are created.")
-    print(np.array(features).shape)
     features = np.array(features)[:, :, 1:]
     labels = np.array(labels)
-    print(labels.shape)
     save_dataset(features, "features")
     save_dataset(labels, "labels")
 
@@ -79,25 +77,24 @@ def get_stats(sample, multiplier=1):
     sample_diff = (sample_max - sample_min)
     sample_mean = np.mean(sample)*multiplier
     sample_sigma = np.std(sample)*multiplier
-    print(f"Max: {sample_max}, Min: {sample_min}, Diff: {sample_diff}, Mean: {sample_mean}, Sigma: {sample_sigma}")
     return sample_max, sample_min, sample_diff, sample_mean, sample_sigma
 
 def classify_label(sample:list, label:float) -> float:
     sample_max, sample_min, sample_diff, sample_mean, sample_sigma = get_stats(sample)
-
+    print(f"Max: {sample_max}, Min: {sample_min}, Diff: {sample_diff}, Mean: {sample_mean}, Sigma: {sample_sigma}")
     def normalize(sample_max, sample_min, sample_diff, sample_mean, sample_sigma):
         return (sample - sample_mean) / sample_sigma
 
     sample_norm = normalize(sample_max, sample_min, sample_diff, sample_mean, sample_sigma)
-    sample_max_norm, sample_min_norm, sample_diff_norm, sample_mean_norm, sample_sigma_norm = get_stats(sample_norm, multiplier=sample_sigma)
-
-    if label > sample_sigma_norm+sample_mean_norm:
+    sample_max_norm, sample_min_norm, sample_diff_norm, sample_mean_norm, sample_sigma_norm = get_stats(sample_norm, multiplier=1)
+    print(f"Max: {sample_max_norm}, Min: {sample_min_norm}, Diff: {sample_diff_norm}, Mean: {sample_mean_norm}, Sigma: {sample_sigma_norm}")
+    if label > (sample_sigma_norm+sample_mean_norm)*sample_sigma:
         return BUY_MAX
-    elif label > sample_mean_norm+sample_sigma_norm/2:
+    elif label > (sample_mean_norm+sample_sigma_norm/2)*sample_sigma:
         return BUY
-    elif label > sample_mean_norm-sample_sigma_norm/2:
+    elif label > (sample_mean_norm-sample_sigma_norm/2)*sample_sigma:
         return HOLD
-    elif label > sample_mean_norm-sample_sigma_norm:
+    elif label > (sample_mean_norm-sample_sigma_norm)*sample_sigma:
         return SELL
     else:
         return SELL_MAX
@@ -127,9 +124,6 @@ def labels_classification(labels:np.ndarray, features:np.ndarray) -> np.ndarray:
     # labels = labels[:10]
     for i, label in enumerate(labels):
         labels[i] = classify_label(features[i, :, 7], label)
-        print(f"Feature {i}: {features[i, :, 7]}")
-        print(f"Label {i}: {label}")
-        print(f"Classified label {i}: {labels[i]}")
     print(labels)
     
     return labels
