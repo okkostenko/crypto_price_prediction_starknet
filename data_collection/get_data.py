@@ -43,7 +43,6 @@ def statistics_growth(filename:str, token:str) -> None:
     
     df.to_csv(new_filepath)
     print("\n\nBitcoin historical data with calculated statistics:\n")
-    print(df)
     visualize_data(df)
 
 if __name__=="__main__":
@@ -52,8 +51,8 @@ if __name__=="__main__":
     # get_full_data(token=BTC_TOKEN, timeframe=TIMEFRAME, periods=PERIODS)
     # print("Data for Bitcoin-Tether is collected\n\n")
 
-    # print("Collecting data for Ethirium-Tether...")
-    # get_full_data(token=ETH_TOKEN, timeframe=TIMEFRAME, periods=PERIODS)
-    # print("Data for Ethirium-Tether is collected\n\n")
-    statistics_growth(filename='./data_collection/datasets/full/historical_BTCUSDT_1d_full.csv', token="BTC")
-    print("Statistics for Bitcoin-Tether is collected\n\n")
+    print("Collecting data for Ethirium-Tether...")
+    get_full_data(token=ETH_TOKEN, timeframe=TIMEFRAME, periods=PERIODS)
+    print("Data for Ethirium-Tether is collected\n\n")
+    # statistics_growth(filename='./data_collection/datasets/full/historical_BTCUSDT_1d_full.csv', token="BTC")
+    # print("Statistics for Bitcoin-Tether is collected\n\n")

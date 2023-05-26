@@ -18,9 +18,12 @@ OTPUT_DIR = "./data_collection/datasets"
 #         case _:
 #             raise ValueError(f"There is no such split as {split_name}. Please input one of following: 'train', 'validation' or 'test'.")
 
-def split_dataset(features:np.ndarray, labels:np.ndarray) -> None:
+def split_dataset(features:np.ndarray, labels:np.ndarray, task:str) -> None:
     train_len = int(len(features)*TRAINING_SPLIT)
-    print(train_len)
+
+
+    if task == "class":
+        labels = labels_classification(labels, features)
 
     training_features = features[:train_len]
     training_labels = labels[:train_len]
@@ -28,15 +31,15 @@ def split_dataset(features:np.ndarray, labels:np.ndarray) -> None:
     test_features = features[train_len:]
     test_labels = labels[train_len:]
 
-    save_dataset(training_features, "features", "training")
-    save_dataset(training_labels, "labels", "training")
-    save_dataset(test_features, "features", "test")
-    save_dataset(test_labels, "labels", "test")
+    save_dataset(training_features, "features", "training", task)
+    save_dataset(training_labels, "labels", "training", task)
+    save_dataset(test_features, "features", "test", task)
+    save_dataset(test_labels, "labels", "test", task)
 
-def save_dataset(data:np.ndarray, type:str, split:str|None="full") -> None:
-    if not os.path.exists(OTPUT_DIR+"/"+split+"/"+type+".npy"):
-        os.makedirs(filepath:=os.path.join(OTPUT_DIR, split), exist_ok=True)
-        with open(OTPUT_DIR+"/"+split+"/"+type+".npy", "wb") as f:
+def save_dataset(data:np.ndarray, type:str, split:str|None="full", task:str|None="full") -> None:
+    if not os.path.exists(OTPUT_DIR+"/"+split+"/"+task+"/"+type+".npy"):
+        os.makedirs(filepath:=os.path.join(OTPUT_DIR, split, task), exist_ok=True)
+        with open(OTPUT_DIR+"/"+split+"/"+task+"/"+type+".npy", "wb") as f:
             np.save(f, data)
 
 
@@ -60,43 +63,78 @@ def create_dataset(symbol:str, periods:int|None=PERIODS, task:str|None="reg") ->
         labels_data = df_y_np[row_idx+periods-1]
         features.append(features_data)
         labels.append(labels_data)
-
-    if task == "class":
-        labels = labels_classification(labels)
-
+    print("Features and labels are created.")
+    print(np.array(features).shape)
+    features = np.array(features)[:, :, 1:]
+    labels = np.array(labels)
+    print(labels.shape)
     save_dataset(features, "features")
     save_dataset(labels, "labels")
 
-    split_dataset(features, labels)
+    split_dataset(features, labels, task=task)
     
+def get_stats(sample, multiplier=1):
+    sample_max = np.max(sample)*multiplier
+    sample_min = np.min(sample)*multiplier
+    sample_diff = (sample_max - sample_min)
+    sample_mean = np.mean(sample)*multiplier
+    sample_sigma = np.std(sample)*multiplier
+    print(f"Max: {sample_max}, Min: {sample_min}, Diff: {sample_diff}, Mean: {sample_mean}, Sigma: {sample_sigma}")
+    return sample_max, sample_min, sample_diff, sample_mean, sample_sigma
+
+def classify_label(sample:list, label:float) -> float:
+    sample_max, sample_min, sample_diff, sample_mean, sample_sigma = get_stats(sample)
+
+    def normalize(sample_max, sample_min, sample_diff, sample_mean, sample_sigma):
+        return (sample - sample_mean) / sample_sigma
+
+    sample_norm = normalize(sample_max, sample_min, sample_diff, sample_mean, sample_sigma)
+    sample_max_norm, sample_min_norm, sample_diff_norm, sample_mean_norm, sample_sigma_norm = get_stats(sample_norm, multiplier=sample_sigma)
+
+    if label > sample_sigma_norm+sample_mean_norm:
+        return BUY_MAX
+    elif label > sample_mean_norm+sample_sigma_norm/2:
+        return BUY
+    elif label > sample_mean_norm-sample_sigma_norm/2:
+        return HOLD
+    elif label > sample_mean_norm-sample_sigma_norm:
+        return SELL
+    else:
+        return SELL_MAX
 
 
-def labels_classification(labels:np.ndarray) -> np.ndarray:
+def labels_classification(labels:np.ndarray, features:np.ndarray) -> np.ndarray:
 
     """Classifies labales for a dataset by standard deviation using percentile."""
-    labels_min = np.min(labels)
-    labels_max = np.max(labels)
-    labels_diff = labels_max - labels_min
+    # labels_min = np.min(labels)
+    # labels_max = np.max(labels)
+    # labels_diff = labels_max - labels_min
+    # for i, label in enumerate(labels):
+    #     # if label > np.percentile(labels, 84.4):
+    #     if label > labels_diff*0.8+labels_min:
+    #         labels[i] = BUY_MAX
+    #     # elif label > np.percentile(labels, 66.7):
+    #     elif label > labels_diff*0.6+labels_min:
+    #         labels[i] = BUY
+    #     # elif label > np.percentile(labels, 33.7):
+    #     elif label > labels_diff*0.4+ labels_min:
+    #         labels[i] = HOLD
+    #     # elif label > np.percentile(labels, 16.7):
+    #     elif label > labels_diff*0.2+labels_min:
+    #         labels[i] = SELL
+    #     else:
+    #         labels[i] = SELL_MAX
+    # labels = labels[:10]
     for i, label in enumerate(labels):
-        # if label > np.percentile(labels, 84.4):
-        if label > labels_diff*0.844+labels_min:
-            print(np.percentile(labels, 84.4))
-            labels[i] = BUY_MAX
-        # elif label > np.percentile(labels, 66.7):
-        elif label > labels_diff*0.667+labels_min:
-            labels[i] = BUY
-        # elif label > np.percentile(labels, 33.7):
-        elif label > labels_diff*0.337+ labels_min:
-            labels[i] = HOLD
-        # elif label > np.percentile(labels, 16.7):
-        elif label > labels_diff*0.167+labels_min:
-            labels[i] = SELL
-        else:
-            labels[i] = SELL_MAX
+        labels[i] = classify_label(features[i, :, 7], label)
+        print(f"Feature {i}: {features[i, :, 7]}")
+        print(f"Label {i}: {label}")
+        print(f"Classified label {i}: {labels[i]}")
+    print(labels)
     
     return labels
 
 if __name__ == "__main__":
-    create_dataset(BTC_TOKEN)
-    create_dataset(BTC_TOKEN, task="class")
+    create_dataset(ETH_TOKEN)
+    create_dataset(ETH_TOKEN, task="class")
     print("Datasets are created.")
