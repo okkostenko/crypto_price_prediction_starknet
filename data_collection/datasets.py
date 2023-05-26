@@ -92,8 +92,10 @@ def classify_label(sample:list, label:float) -> float:
         return BUY_MAX
     elif label > (sample_mean_norm+sample_sigma_norm/2)*sample_sigma:
         return BUY
+    elif label > (sample_mean_norm)*sample_sigma:
+        return HOLD_UP
     elif label > (sample_mean_norm-sample_sigma_norm/2)*sample_sigma:
-        return HOLD
+        return HOLD_DOWN
     elif label > (sample_mean_norm-sample_sigma_norm)*sample_sigma:
         return SELL
     else:
