@@ -48,6 +48,14 @@ def create_dataset(symbol:str, periods:int|None=PERIODS, task:str|None="reg") ->
     """Splits dataset into training, validation and testing ones."""
 
     df = pd.read_csv(f'./data_collection/datasets/full/data_with_statistics_{symbol}_{TIMEFRAME}_full.csv')
+    print(df.columns)
+    df.set_index("timestamp", inplace=True)
+
+    df_changes=(df.iloc[:, :-1]-df.iloc[:, :-1].shift(1))/df.iloc[:, :-1]
+    df_changes["growth"] = df["growth"]/df["open"]
+    df_changes["label"] = df["label"]/df["close"]
+    print(df_changes.head())
+
     df_y = df["label"]
     df_x = df.iloc[:, :-1]
 
@@ -81,21 +89,17 @@ def get_stats(sample, multiplier=1):
 
 def classify_label(sample:list, label:float) -> float:
     sample_max, sample_min, sample_diff, sample_mean, sample_sigma = get_stats(sample)
-    print(f"Max: {sample_max}, Min: {sample_min}, Diff: {sample_diff}, Mean: {sample_mean}, Sigma: {sample_sigma}")
     def normalize(sample_max, sample_min, sample_diff, sample_mean, sample_sigma):
         return (sample - sample_mean) / sample_sigma
 
     sample_norm = normalize(sample_max, sample_min, sample_diff, sample_mean, sample_sigma)
     sample_max_norm, sample_min_norm, sample_diff_norm, sample_mean_norm, sample_sigma_norm = get_stats(sample_norm, multiplier=1)
-    print(f"Max: {sample_max_norm}, Min: {sample_min_norm}, Diff: {sample_diff_norm}, Mean: {sample_mean_norm}, Sigma: {sample_sigma_norm}")
     if label > (sample_sigma_norm+sample_mean_norm)*sample_sigma:
         return BUY_MAX
     elif label > (sample_mean_norm+sample_sigma_norm/2)*sample_sigma:
         return BUY
-    elif label > (sample_mean_norm)*sample_sigma:
-        return HOLD_UP
     elif label > (sample_mean_norm-sample_sigma_norm/2)*sample_sigma:
-        return HOLD_DOWN
+        return HOLD
     elif label > (sample_mean_norm-sample_sigma_norm)*sample_sigma:
         return SELL
     else:
@@ -125,12 +129,12 @@ def labels_classification(labels:np.ndarray, features:np.ndarray) -> np.ndarray:
     #         labels[i] = SELL_MAX
     # labels = labels[:10]
     for i, label in enumerate(labels):
-        labels[i] = classify_label(features[i, :, 7], label)
+        labels[i] = classify_label(features[i, :, 8], label)
     print(labels)
     
     return labels
 
 if __name__ == "__main__":
-    create_dataset(ETH_TOKEN)
+    # create_dataset(ETH_TOKEN)
     create_dataset(ETH_TOKEN, task="class")
     print("Datasets are created.")
