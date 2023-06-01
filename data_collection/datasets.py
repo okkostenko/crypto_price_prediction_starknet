@@ -47,19 +47,24 @@ def create_dataset(symbol:str, periods:int|None=PERIODS, task:str|None="reg") ->
 
     """Splits dataset into training, validation and testing ones."""
 
-    df = pd.read_csv(f'./data_collection/datasets/full/data_with_statistics_{symbol}_{TIMEFRAME}_full.csv')
-    print(df.columns)
-    df.set_index("timestamp", inplace=True)
-
+    # df = pd.read_csv(f'./data_collection/datasets/full/data_with_statistics_{symbol}_{TIMEFRAME}_full.csv')
+    df = pd.read_csv("data_collection/datasets/sentiments/data_with_sentiments.csv")
+    df.set_index("date", inplace=True)
+    del df["Unnamed: 0"]
+    df = df.sort_index(ascending=True)
     df_changes=(df.iloc[:, :-1]-df.iloc[:, :-1].shift(1))/df.iloc[:, :-1]
     df_changes["growth"] = df["growth"]/df["open"]
     df_changes["label"] = df["label"]/df["close"]
-    print(df_changes.head())
+    df_changes[["Bearish", "Bullish", "Neutral", "gf-index"]] = df[["Bearish", "Bullish", "Neutral", "gf-index"]]
+    df_changes = df_changes.sort_index(ascending=True)
 
-    df_y = df["label"]
-    df_x = df.iloc[:, :-1]
+    df_changes.to_csv("data_collection/datasets/dcomplete_dataset.csv")
+
+    df_y = df_changes["label"]
+    df_x = df_changes.iloc[:, :-1]
 
     row_number = len(df)
+    print(df_x.iloc[-2, 7])
 
     df_x_np = df_x.to_numpy()
     df_y_np = df_y.to_numpy()
@@ -72,7 +77,8 @@ def create_dataset(symbol:str, periods:int|None=PERIODS, task:str|None="reg") ->
         features.append(features_data)
         labels.append(labels_data)
     print("Features and labels are created.")
-    features = np.array(features)[:, :, 1:]
+    # features = np.array(features)[:, :, 1:]
+    features = np.array(features)
     labels = np.array(labels)
     save_dataset(features, "features")
     save_dataset(labels, "labels")
@@ -129,7 +135,7 @@ def labels_classification(labels:np.ndarray, features:np.ndarray) -> np.ndarray:
     #         labels[i] = SELL_MAX
     # labels = labels[:10]
     for i, label in enumerate(labels):
-        labels[i] = classify_label(features[i, :, 8], label)
+        labels[i] = classify_label(features[i, :, 7], label)
     print(labels)
     
     return labels

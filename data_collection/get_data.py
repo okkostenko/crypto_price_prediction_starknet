@@ -1,6 +1,6 @@
 import os
 import pandas as pd
-from functions.data import get_data_full, visualize_data, update_data
+from functions.data import get_data_full, visualize_data, add_sentiments
 from functions.statistics_calculation import calc_statistics, calculate_statistics_by_day
 from constants import BTC_TOKEN, ETH_TOKEN, TIMEFRAME, PERIODS
 
@@ -47,12 +47,8 @@ def statistics_growth(filename:str, token:str) -> None:
 
 if __name__=="__main__":
 
-    # print("Collecting data for Bitcoin-Tether...")
-    # get_full_data(token=BTC_TOKEN, timeframe=TIMEFRAME, periods=PERIODS)
-    # print("Data for Bitcoin-Tether is collected\n\n")
+    # print("Collecting data for Ethirium-Tether...")
+    # get_full_data(token=ETH_TOKEN, timeframe=TIMEFRAME, periods=PERIODS)
+    # print("Data for Ethirium-Tether is collected\n\n")
 
-    print("Collecting data for Ethirium-Tether...")
-    get_full_data(token=ETH_TOKEN, timeframe=TIMEFRAME, periods=PERIODS)
-    print("Data for Ethirium-Tether is collected\n\n")
-    # statistics_growth(filename='./data_collection/datasets/full/historical_BTCUSDT_1d_full.csv', token="BTC")
-    # print("Statistics for Bitcoin-Tether is collected\n\n")
+    add_sentiments()
