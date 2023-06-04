@@ -47,8 +47,7 @@ def statistics_growth(filename:str, token:str) -> None:
 
 if __name__=="__main__":
 
-    # print("Collecting data for Ethirium-Tether...")
-    # get_full_data(token=ETH_TOKEN, timeframe=TIMEFRAME, periods=PERIODS)
-    # print("Data for Ethirium-Tether is collected\n\n")
-
+    print("Collecting data for Ethirium-Tether...")
+    get_full_data(token=ETH_TOKEN, timeframe=TIMEFRAME, periods=PERIODS)
+    print("Data for Ethirium-Tether is collected\n\n")
     add_sentiments()

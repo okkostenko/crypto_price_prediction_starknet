@@ -52,13 +52,17 @@ def create_dataset(symbol:str, periods:int|None=PERIODS, task:str|None="reg") ->
     df.set_index("date", inplace=True)
     del df["Unnamed: 0"]
     df = df.sort_index(ascending=True)
+    columns = np.delete(df.columns, np.where(df.columns == "label"))
+    columns = np.append(columns, "label")
+    df=df[columns]
+    df["sentiment"]=df["sentiment"].apply(lambda x: int(x) if len(x)==1 else int(0))
     df_changes=(df.iloc[:, :-1]-df.iloc[:, :-1].shift(1))/df.iloc[:, :-1]
     df_changes["growth"] = df["growth"]/df["open"]
     df_changes["label"] = df["label"]/df["close"]
-    df_changes[["Bearish", "Bullish", "Neutral", "gf-index"]] = df[["Bearish", "Bullish", "Neutral", "gf-index"]]
-    df_changes = df_changes.sort_index(ascending=True)
+    df_changes[["sentiment", "gf-index"]] = df[["sentiment", "gf-index"]]
+    df_changes = df_changes.sort_index(ascending=True).dropna()
 
-    df_changes.to_csv("data_collection/datasets/dcomplete_dataset.csv")
+    df_changes.to_csv("data_collection/datasets/complete_dataset.csv")
 
     df_y = df_changes["label"]
     df_x = df_changes.iloc[:, :-1]
@@ -95,22 +99,22 @@ def get_stats(sample, multiplier=1):
 
 def classify_label(sample:list, label:float) -> float:
     sample_max, sample_min, sample_diff, sample_mean, sample_sigma = get_stats(sample)
-    def normalize(sample_max, sample_min, sample_diff, sample_mean, sample_sigma):
-        return (sample - sample_mean) / sample_sigma
-
-    sample_norm = normalize(sample_max, sample_min, sample_diff, sample_mean, sample_sigma)
+    def normalize(sample_mean):
+        return sample - sample_mean
+    print(f"Sample mean: {sample_mean}, sample sigma: {sample_sigma}")
+    sample_norm = normalize(sample_mean)
     sample_max_norm, sample_min_norm, sample_diff_norm, sample_mean_norm, sample_sigma_norm = get_stats(sample_norm, multiplier=1)
-    if label > (sample_sigma_norm+sample_mean_norm)*sample_sigma:
+    print(f"Sample mean norm: {sample_mean_norm}, sample sigma norm: {sample_sigma_norm}")
+    if label > sample_sigma_norm+sample_mean_norm:
         return BUY_MAX
-    elif label > (sample_mean_norm+sample_sigma_norm/2)*sample_sigma:
+    elif label > sample_mean_norm+sample_sigma_norm/2:
         return BUY
-    elif label > (sample_mean_norm-sample_sigma_norm/2)*sample_sigma:
+    elif label > sample_mean_norm-sample_sigma_norm/2:
         return HOLD
-    elif label > (sample_mean_norm-sample_sigma_norm)*sample_sigma:
+    elif label > sample_mean_norm-sample_sigma_norm:
         return SELL
     else:
         return SELL_MAX
-
 
 def labels_classification(labels:np.ndarray, features:np.ndarray) -> np.ndarray:
 

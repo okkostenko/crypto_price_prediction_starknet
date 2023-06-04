@@ -14,7 +14,7 @@ def get_gf_index():
     fg_index_df.set_index("timestamp", inplace=True)
 
     val_class = {"Extreme Fear": 0, "Fear": 1, "Neutral": 2, "Greed": 3, "Extreme Greed": 4}
-    fg_index_df["value_classification"] = np.array(list(map(lambda x: val_class[x], fg_index_df["value_classification"])))/len(val_class)
+    fg_index_df["value_classification"] = np.array(list(map(lambda x: val_class[x], fg_index_df["value_classification"])))
 
     return fg_index_df[["value_classification"]].rename(columns={"value_classification":"gf-index"})
 

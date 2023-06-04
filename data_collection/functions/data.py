@@ -183,11 +183,12 @@ def add_sentiments() -> pd.DataFrame:
     df = pd.read_csv("data_collection/datasets/full/data_with_statistics_ETHUSDT_1d_full.csv")
     news_df = pd.read_csv("data_collection/datasets/sentiments/news_with_financial_summary_and_sentiment.csv")
     gf_index = get_gf_index()
-    news_df = news_df.join(pd.get_dummies(news_df["sentiment"]))
-    sentiments = news_df[["Bearish", "Bullish", "Neutral"]]\
-        .multiply(news_df["sentiment_score"], axis="index")\
-        .groupby(news_df["date"])\
-        .mean()
+    news_df["sentiment"] = news_df["sentiment"].apply(lambda x: 1 if x == "Bearish" else 2 if x == "Bullish" else 0)
+    # sentiments = news_df[["Bearish", "Bullish", "Neutral"]]\
+    #     .multiply(news_df["sentiment_score"], axis="index")\
+    #     .groupby(news_df["date"])\
+    #     .mean()
+    sentiments = news_df["sentiment"].groupby(news_df["date"]).agg(pd.Series.mode).reset_index()
     
     df["date"] = pd.to_datetime(df["timestamp"])
     del df["timestamp"]
@@ -197,10 +198,13 @@ def add_sentiments() -> pd.DataFrame:
 
     gf_index = gf_index.reset_index()
     gf_index["date"] = pd.to_datetime(gf_index["timestamp"])
+    gf_index["gf-index"] = gf_index["gf-index"].astype("int")
     del gf_index["timestamp"]
 
     sentiments_gf = pd.merge(sentiments, gf_index, on="date", how="left")
     df = pd.merge(df, sentiments_gf, on="date", how="left")
+    del df["index"]
+    df.dropna(inplace=True)
     print(df)
     df.to_csv("data_collection/datasets/sentiments/data_with_sentiments.csv")
     return df

@@ -1,5 +1,5 @@
 NUMBER_OF_CLASSES = 5
-EPOCHS = 50
+EPOCHS = 30
 BATCH_SIZE = 18
 
 TRAINING_PATH = "../data_collection/datasets/training"
