@@ -7,17 +7,6 @@ from constants import *
 
 OTPUT_DIR = "./data_collection/datasets"
 
-# def get_split(split_name:str) -> float:
-#     match split_name:
-#         case "train":
-#             return TRAINING_SPLIT
-#         case "validation":
-#             return VALIDATION_SPLIT
-#         case "test":
-#             return TEST_SPLIT
-#         case _:
-#             raise ValueError(f"There is no such split as {split_name}. Please input one of following: 'train', 'validation' or 'test'.")
-
 def split_dataset(features:np.ndarray, labels:np.ndarray, task:str) -> None:
     train_len = int(len(features)*TRAINING_SPLIT)
 
@@ -119,25 +108,6 @@ def classify_label(sample:list, label:float) -> float:
 def labels_classification(labels:np.ndarray, features:np.ndarray) -> np.ndarray:
 
     """Classifies labales for a dataset by standard deviation using percentile."""
-    # labels_min = np.min(labels)
-    # labels_max = np.max(labels)
-    # labels_diff = labels_max - labels_min
-    # for i, label in enumerate(labels):
-    #     # if label > np.percentile(labels, 84.4):
-    #     if label > labels_diff*0.8+labels_min:
-    #         labels[i] = BUY_MAX
-    #     # elif label > np.percentile(labels, 66.7):
-    #     elif label > labels_diff*0.6+labels_min:
-    #         labels[i] = BUY
-    #     # elif label > np.percentile(labels, 33.7):
-    #     elif label > labels_diff*0.4+ labels_min:
-    #         labels[i] = HOLD
-    #     # elif label > np.percentile(labels, 16.7):
-    #     elif label > labels_diff*0.2+labels_min:
-    #         labels[i] = SELL
-    #     else:
-    #         labels[i] = SELL_MAX
-    # labels = labels[:10]
     for i, label in enumerate(labels):
         labels[i] = classify_label(features[i, :, 7], label)
     print(labels)

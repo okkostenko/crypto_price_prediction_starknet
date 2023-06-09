@@ -4,11 +4,6 @@ from functions.data import get_data_full, visualize_data, add_sentiments
 from functions.statistics_calculation import calc_statistics, calculate_statistics_by_day
 from constants import BTC_TOKEN, ETH_TOKEN, TIMEFRAME, PERIODS
 
-# We are making a prediction for a time point in a week 
-# So we have to include at least the last 2 weeks data, etc. last 14 rows of data, if the timeframe is set to 1d
-# There for periods have to be set to 14
-
-# We will predict what close price will be on t+7 date
 
 def get_full_data(token:str, timeframe:str, periods:int) -> None:
 
